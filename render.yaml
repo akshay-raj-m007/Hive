@@ -26,6 +26,8 @@ services:
         generateValue: true
       - key: NVIDIA_API_KEY
         sync: false
+      - key: DATABASE_URL           # PostgreSQL for stored test results (e.g. free Neon); without it results reset on redeploy
+        sync: false
       - key: MIXPANEL_TOKEN
         sync: false
       - key: CORS_ORIGINS           # e.g. https://hive.vercel.app

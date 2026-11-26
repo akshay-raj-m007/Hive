@@ -240,3 +240,16 @@ td.wrap { white-space: normal; min-width: 160px; }
 
 .waking { text-align: center; padding: 20px 0 40px; }
 .waking .loader { margin: 10px auto 16px; }
+
+/* owner area */
+.admin-tabs { display: inline-flex; margin: 0 0 18px; }
+.small-value { font-size: 24px !important; }
+.filter-chips { margin: 0 0 16px; }
+.filter-chips .chip { cursor: pointer; color: var(--text); font: inherit; font-size: 13px; }
+.filter-chips .chip.on { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+.filter-chips .chip.on small { color: var(--black); }
+.stored-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 0; }
+.stored-meta .eyebrow { margin-bottom: 4px; }
+.stored-actions { display: flex; gap: 8px; }
+.btn.danger { border-color: #7a2d2d; color: #ff9b9b; }
+.result.readonly { padding-top: 16px; padding-left: 0; padding-right: 0; }

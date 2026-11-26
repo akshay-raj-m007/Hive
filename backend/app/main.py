@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from . import catalog, config, db, enrich, geo, llm, narrative, portrait, scoring, tracking, visitor
+from . import catalog, config, db, enrich, geo, llm, narrative, portrait, results_store, scoring, tracking, visitor
 from .cards import CARDS, CARDS_BY_ID
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=config.CORS_ORIGINS,
     allow_origin_regex=config.CORS_ORIGIN_REGEX,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type", "X-Admin-Key"],
 )
 
@@ -165,7 +165,7 @@ async def submit_test(test_id: str, submission: TestSubmission):
     story = await narrative.compose(portrait.build(test_id, result, submission.answers),
                                     visitor.greeting_facts(profile), visitor.greeting_fallback(profile),
                                     use_ai=submission.use_ai)
-    return {
+    response = {
         "test_id": test_id,
         "title": card["title"],
         "result": result,
@@ -184,3 +184,38 @@ async def submit_test(test_id: str, submission: TestSubmission):
         "ai_requested": submission.use_ai,
         "sources": CARDS_BY_ID[test_id].get("sources", []),
     }
+    # Keep a copy for the owner's admin page. Never let storage problems block the visitor's result.
+    try:
+        place = await run_in_threadpool(visitor.latest_properties, submission.distinct_id)
+        await run_in_threadpool(results_store.save, submission.distinct_id, test_id, submission.answers, response,
+                                place)
+    except Exception as exc:  # noqa: BLE001
+        log.error("Could not store test result: %s", exc)
+    return response
+
+
+# ---------- stored test results (owner only) ----------
+
+@app.get("/api/admin/results/summary", dependencies=[Depends(require_admin)])
+async def results_summary():
+    return await run_in_threadpool(results_store.summary)
+
+
+@app.get("/api/admin/results", dependencies=[Depends(require_admin)])
+async def results_list(test_id: str | None = None, limit: int = 50, offset: int = 0):
+    return await run_in_threadpool(results_store.list_results, test_id, max(1, min(limit, 200)), max(0, offset))
+
+
+@app.get("/api/admin/results/{result_id}", dependencies=[Depends(require_admin)])
+async def results_get(result_id: int):
+    found = await run_in_threadpool(results_store.get, result_id)
+    if not found:
+        raise HTTPException(status_code=404, detail="Result not found")
+    return found
+
+
+@app.delete("/api/admin/results/{result_id}", dependencies=[Depends(require_admin)])
+async def results_delete(result_id: int):
+    if not await run_in_threadpool(results_store.remove, result_id):
+        raise HTTPException(status_code=404, detail="Result not found")
+    return {"deleted": result_id}

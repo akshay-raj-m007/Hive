@@ -197,12 +197,12 @@ function Attachment({ result }) {
   )
 }
 
-export default function ResultView({ data, onExit, onRetake }) {
+export default function ResultView({ data, onExit, onRetake, readOnly = false }) {
   const [showFacts, setShowFacts] = useState(false)
   const r = data.result
   return (
-    <main className="container result">
-      <button className="back-link" onClick={onExit}>← All tests</button>
+    <main className={`container result ${readOnly ? "readonly" : ""}`}>
+      <button className="back-link" onClick={onExit}>{readOnly ? '← Back to stored results' : '← All tests'}</button>
       <p className="eyebrow">{data.title}</p>
       <h1 className="test-title">{r.headline}</h1>
 
@@ -303,10 +303,10 @@ export default function ResultView({ data, onExit, onRetake }) {
         you, talk to a qualified professional.
       </p>
 
-      <div className="runner-nav">
+      {!readOnly && <div className="runner-nav">
         <button className="btn ghost" onClick={onRetake}>Retake</button>
         <button className="btn" onClick={onExit}>Take another test</button>
-      </div>
+      </div>}
     </main>
   )
 }

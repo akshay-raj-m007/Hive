@@ -119,7 +119,7 @@ export default function App() {
       {confirming && (
         <ConfirmModal
           title={confirming.title}
-          body={`${confirming.question_count} questions · about ${confirming.minutes} minutes. Your answers are scored on Hive's server.`}
+          body={`${confirming.question_count} questions · about ${confirming.minutes} minutes. Your answers and result are scored on Hive's server and saved anonymously (no name or email) for the site owner to review.`}
           confirmLabel="Yes, enter"
           onCancel={() => setConfirming(null)}
           onConfirm={() => {

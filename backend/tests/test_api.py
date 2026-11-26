@@ -88,3 +88,19 @@ def test_polish_guard_rejects_invented_content():
     assert narrative.faithful(original, "Your score is 13 out of 30, “satisfied with myself”, in Tirupati.") == []
     assert narrative.faithful(original, "Your score is 15 out of 30, “satisfied with myself”, in Tirupati.")
     assert narrative.faithful(original, "Your score is 13 out of 30, “satisfied”, in Mumbai.")
+
+
+def test_results_are_stored_for_admin_only():
+    q = client.get("/api/tests/self-esteem").json()
+    r = client.post("/api/tests/self-esteem/submit", json={"distinct_id": "stored", "answers": answers_for("self-esteem", q)})
+    assert r.status_code == 200
+    assert client.get("/api/admin/results").status_code == 401
+    h = {"X-Admin-Key": "test-passkey"}
+    rows = client.get("/api/admin/results?test_id=self-esteem", headers=h).json()
+    mine = [x for x in rows if x["distinct_id"] == "stored"]
+    assert mine
+    full = client.get(f"/api/admin/results/{mine[0]['id']}", headers=h).json()
+    assert full["response"]["story_title"] == r.json()["story_title"]
+    assert full["answers"] == answers_for("self-esteem", q)
+    assert client.get("/api/admin/results/summary", headers=h).json()["total"] >= 1
+    assert client.delete(f"/api/admin/results/{mine[0]['id']}", headers=h).status_code == 200

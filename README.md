@@ -124,6 +124,20 @@ deploying.
 - AI wording is opt-in per test, with a clear list of the data sent. Card-click analytics (Mixpanel) runs for every
   visitor, so add a site privacy notice.
 
+## Stored test results (owner only)
+
+Every completed test is saved: the answers, plus the full result exactly as the visitor saw it. You can browse
+it under **Owner access → Test results**, filter by test, open any result and delete entries. Visitors are told
+in the start dialog that results are saved anonymously.
+
+Storage uses PostgreSQL when `DATABASE_URL` is set, otherwise a local SQLite file (`backend/results.db`). On
+Render's free plan the local file is wiped on every deploy or restart, so for permanent storage:
+
+1. Create a free PostgreSQL database, e.g. at [neon.tech](https://neon.tech) (free tier, no card), and copy its
+   connection string (`postgresql://…`).
+2. In Render → hive-api → Environment, set `DATABASE_URL` to it and save (Render redeploys). The table is
+   created automatically.
+
 ## Analytics (owner only)
 
 Opening a test card is sent to Mixpanel as `Card Clicked`, with `card_id` / `card_title` = the test. Collapsing a

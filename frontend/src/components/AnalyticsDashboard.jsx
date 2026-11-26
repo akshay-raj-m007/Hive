@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { API_URL } from '../lib/analytics.js'
+import StoredResults from './StoredResults.jsx'
 
 const fmt = new Intl.NumberFormat()
 
@@ -56,6 +57,7 @@ export default function AnalyticsDashboard() {
   const [recent, setRecent] = useState([])
   const [error, setError] = useState(null)
   const [expanded, setExpanded] = useState(null)
+  const [tab, setTab] = useState('results')
 
   const load = useCallback(async () => {
     if (!key) return
@@ -113,13 +115,23 @@ export default function AnalyticsDashboard() {
     <main className="container">
       <div className="dash-head">
         <div>
-          <p className="eyebrow">Live · refreshes every 10s</p>
-          <h1>Card analytics</h1>
+          <p className="eyebrow">Owner area</p>
+          <h1>{tab === 'results' ? 'Test results' : 'Card analytics'}</h1>
         </div>
         <button className="btn ghost" onClick={() => { sessionStorage.removeItem('hive_admin_key'); setKey('') }}>Lock</button>
       </div>
       {error && <div className="alert">{error}</div>}
 
+      <nav className="tabs admin-tabs" aria-label="Owner area">
+        <button className={tab === 'results' ? 'active' : ''} onClick={() => setTab('results')}>Test results</button>
+        <button className={tab === 'clicks' ? 'active' : ''} onClick={() => setTab('clicks')}>Card clicks</button>
+      </nav>
+
+      {tab === 'results' && (
+        <StoredResults adminKey={key} onUnauthorized={() => { sessionStorage.removeItem('hive_admin_key'); setKey(''); setError('That passkey is not valid.') }} />
+      )}
+
+      {tab === 'clicks' && <>
       {summary && (
         <>
           <section className="tiles">
@@ -185,6 +197,7 @@ export default function AnalyticsDashboard() {
           </table>
         </div>
       </section>
+      </>}
     </main>
   )
 }
