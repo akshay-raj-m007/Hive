@@ -124,6 +124,13 @@ deploying.
 - AI wording is opt-in per test, with a clear list of the data sent. Card-click analytics (Mixpanel) runs for every
   visitor, so add a site privacy notice.
 
+## Phone model names
+
+For visitors on a phone, the result shows the phone's name, e.g. `SM-S918B` → "Samsung Galaxy S23 Ultra". Names
+come from Google's official [Play supported devices](https://support.google.com/googleplay/answer/1727131) list
+(`app/test_data/devices.json`, rebuilt with `python tools/build_devices.py`). iPhones only reveal "iPhone". If a
+code isn't in the list and the visitor opted in to AI, the model gives an estimate, which is labelled as one.
+
 ## Stored test results (owner only)
 
 Every completed test is saved: the answers, plus the full result exactly as the visitor saw it. You can browse

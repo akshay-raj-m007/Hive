@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from . import catalog, config, db, enrich, geo, llm, narrative, portrait, results_store, scoring, tracking, visitor
+from . import catalog, config, db, devices, enrich, geo, llm, narrative, portrait, results_store, scoring, tracking, visitor
 from .cards import CARDS, CARDS_BY_ID
 
 logging.basicConfig(level=logging.INFO)
@@ -162,16 +162,31 @@ async def submit_test(test_id: str, submission: TestSubmission):
 
     context = await run_in_threadpool(visitor.context_facts, submission.distinct_id, submission.meta)
     profile = await run_in_threadpool(visitor.visit_profile, submission.distinct_id, submission.meta)
+    props = await run_in_threadpool(visitor.latest_properties, submission.distinct_id)
+    phone = await devices.describe(props, submission.use_ai)
+    greet_facts = visitor.greeting_facts(profile)
+    if phone and phone["name"] and not phone["how"].startswith("AI"):
+        greet_facts["phone"] = phone["name"]  # only verified names go into the greeting
+    fallback = visitor.greeting_fallback({**profile, "phone": greet_facts.get("phone")} if "phone" in greet_facts
+                                         else profile)
     story = await narrative.compose(portrait.build(test_id, result, submission.answers),
-                                    visitor.greeting_facts(profile), visitor.greeting_fallback(profile),
-                                    use_ai=submission.use_ai)
+                                    greet_facts, fallback, use_ai=submission.use_ai)
+    stats = visitor.visit_stats(profile)
+    if phone and (phone["name"] or phone["code"]):
+        label = phone["name"] or phone["code"]
+        if phone["name"] and phone["code"]:
+            label += f" ({phone['code']})"
+        if phone["how"] and phone["how"].startswith("AI"):
+            label += " - AI estimate"
+        stats.insert(0, {"label": "Your phone", "value": label})
     response = {
         "test_id": test_id,
         "title": card["title"],
         "result": result,
         "context_facts": context,
         "visit_profile": profile,
-        "visit_stats": visitor.visit_stats(profile),
+        "visit_stats": stats,
+        "device": phone,
         "story_title": story["title"],
         "tagline": story["tagline"],
         "greeting": story["greeting"],
@@ -186,9 +201,8 @@ async def submit_test(test_id: str, submission: TestSubmission):
     }
     # Keep a copy for the owner's admin page. Never let storage problems block the visitor's result.
     try:
-        place = await run_in_threadpool(visitor.latest_properties, submission.distinct_id)
         await run_in_threadpool(results_store.save, submission.distinct_id, test_id, submission.answers, response,
-                                place)
+                                props)
     except Exception as exc:  # noqa: BLE001
         log.error("Could not store test result: %s", exc)
     return response

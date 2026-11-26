@@ -104,3 +104,13 @@ def test_results_are_stored_for_admin_only():
     assert full["answers"] == answers_for("self-esteem", q)
     assert client.get("/api/admin/results/summary", headers=h).json()["total"] >= 1
     assert client.delete(f"/api/admin/results/{mine[0]['id']}", headers=h).status_code == 200
+
+
+def test_phone_model_lookup():
+    from app import devices
+    galaxy = devices.identify({"ch_form_factors": ["Mobile"], "ch_model": "SM-S918B"})
+    assert galaxy["name"] == "Samsung Galaxy S23 Ultra" and galaxy["how"] == "Google Play device list"
+    assert devices.identify({"ua_device_kind": "mobile", "ua_os": "iOS"})["name"] == "Apple iPhone"
+    assert devices.identify({"ua_device_kind": "desktop", "ch_form_factors": ["Desktop"]}) is None
+    unknown = devices.identify({"ch_form_factors": ["Mobile"], "ch_model": "ZZ-NOT-A-PHONE"})
+    assert unknown["name"] is None and unknown["code"] == "ZZ-NOT-A-PHONE"

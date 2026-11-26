@@ -232,7 +232,15 @@ def greeting_fallback(profile: dict[str, str]) -> str | None:
                     f"Namaste from Hive, {city}!" if place.endswith("India") else f"Hey {city}!"]
     openers.append("Welcome back to Hive!" if profile.get("visits", "").startswith("visit number") else "Welcome to Hive!")
     bits.append(random.choice(openers))
-    tech = [x for x in (os_ and f"a {os_} machine", dev and f"a {dev}", profile.get("browser") and f"{profile['browser']}") if x]
+    def a(word: str) -> str:
+        return ("an " if word[:1].lower() in "aeiou" else "a ") + word
+
+    if profile.get("phone"):  # verified phone name, e.g. "Samsung Galaxy S23 Ultra"
+        tech = [x for x in (a(profile["phone"]) + (f" running {os_}" if os_ else ""),
+                            profile.get("browser") and f"{profile['browser']}") if x]
+    else:
+        tech = [x for x in (os_ and a(f"{os_} machine"), dev and a(dev),
+                            profile.get("browser") and f"{profile['browser']}") if x]
     if tech:
         bits.append(random.choice([
             f"You're here on {_join_simple(tech)}",
