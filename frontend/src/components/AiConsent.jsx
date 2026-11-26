@@ -6,7 +6,7 @@ const SENT = [
   'For a personal greeting: city, region and country (worked out from your IP address), day and part of day',
   'Device type, operating system and processor architecture, whether a touch screen was detected',
   'Browser name and version, light or dark mode',
-  'On a phone: its model name (e.g. Galaxy S23 Ultra); if Google's device list doesn't know it, the model code, for an AI estimate',
+  "On a phone: its model name (e.g. Galaxy S23 Ultra); if Google's device list doesn't know it, the model code, for an AI estimate",
   'Internet provider, whether it is mobile data, connection speed class, VPN/proxy and private-network checks',
   'Whether this is your first visit (counts like clicks, duration and battery are shown to you but never sent)',
 ]
