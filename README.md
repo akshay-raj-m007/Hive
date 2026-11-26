@@ -103,9 +103,11 @@ path on it.
 ### 2. Frontend on Vercel (free)
 
 1. In [Vercel](https://vercel.com): **Add New → Project**, import this repository.
-2. Set **Root Directory** to `frontend`. The framework (Vite) and build settings come from `frontend/vercel.json`.
+2. Leave **Root Directory** empty: the root `vercel.json` builds `frontend/` and publishes `frontend/dist`.
+   (Setting Root Directory to `frontend` also works; then `frontend/vercel.json` is used.)
 3. Environment variables:
-   - `VITE_API_URL`: your Render URL, e.g. `https://hive-api.onrender.com`
+   - `VITE_API_URL`: your Render service URL, shown at the top of the service page in Render
+     (e.g. `https://hive-api-xxxx.onrender.com`). Redeploy after changing it, because Vite bakes it in at build time.
    - `VITE_MIXPANEL_TOKEN`: optional
 4. Deploy, then put the Vercel URL into Render's `CORS_ORIGINS`.
 
