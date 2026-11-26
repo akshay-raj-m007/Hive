@@ -14,7 +14,9 @@ def _bool(name: str, default: bool = False) -> bool:
 MIXPANEL_TOKEN = os.getenv("MIXPANEL_TOKEN", "").strip()
 MIXPANEL_API_HOST = os.getenv("MIXPANEL_API_HOST", "api.mixpanel.com").strip()
 ADMIN_KEY = os.getenv("ADMIN_KEY", "change-me")
-CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if o.strip()]
+# Browsers send the origin without a trailing slash or path, so normalise what was configured.
+CORS_ORIGINS = [o.strip().strip('"').rstrip("/") for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+                if o.strip()]
 # Optional regex for extra allowed origins, e.g. Vercel preview URLs: https://hive-.*\.vercel\.app
 CORS_ORIGIN_REGEX = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
 TRUST_PROXY = _bool("TRUST_PROXY")
